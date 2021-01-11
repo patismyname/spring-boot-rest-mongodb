@@ -43,6 +43,13 @@ public class UserController {
 		
 		return responseMap;
 	}
+	@GetMapping(value = "/getAllUsers")
+	public List<User>  findAll() {
+
+		List<User> listUsers =  userRepository.findAll();
+
+		return listUsers;
+	}
 	
 	@GetMapping(value = "/user/{id}")
 	public Map<String, Object> findUser(@PathVariable String id) {
