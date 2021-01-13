@@ -4,10 +4,10 @@ import com.pattanaapp.model.Profile;
 import com.pattanaapp.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -15,7 +15,6 @@ public class ProfileController {
 
     @Autowired
     private ProfileRepository profileRepository;
-
 
     @GetMapping(value = "/profile")
     public List<Profile> getAllprofiles() {
@@ -38,9 +37,9 @@ public class ProfileController {
     }
 
     @GetMapping(value = "/Profile/{id}")
-    public Map<String, Object> findProfile(@PathVariable int id) {
+    public Map<String, Object> findProfile(@PathVariable String id) {
 
-        Profile profile = profileRepository.findById(id);
+        Optional<Profile> profile = profileRepository.findById(id);
         Map<String, Object> responseMap = new HashMap<>();
 
         responseMap.put("Profile", profile);
@@ -66,10 +65,19 @@ public class ProfileController {
         return responseMap;
     }
 
-    @PutMapping(value = "/profile")
-    public Profile updateProfile(@RequestBody Profile profile) {
-        Profile updatedProfile = profileRepository.save(profile);
-        return updatedProfile;
+    @PutMapping(value = "/profile/{id}")
+    public Profile updateProfile(@PathVariable String id, @RequestBody Profile profile) {
+        Optional<Profile> prof = profileRepository.findById(id);
+        if(profile.getName() != null)
+            prof.get().setName(profile.getName());
+        if(profile.getEmail() != null)
+            prof.get().setEmail(profile.getEmail());
+        if(profile.getAge() != null)
+            prof.get().setAge(profile.getAge());
+
+        profileRepository.save(prof.get());
+        return prof.get();
+
     }
 
     @PutMapping(value = "/updateProfile")
@@ -84,12 +92,12 @@ public class ProfileController {
     }
 
     @DeleteMapping(value = "/profile/{id}")
-    public boolean deleteProfile(@PathVariable int id) {
+    public boolean deleteProfile(@PathVariable String id) {
       boolean canDelete=false;
         try {
-         Long longDelById=   profileRepository.deleteById(id);
-
-         if(longDelById!=null){
+            Optional<Profile> profile = profileRepository.findById(id);
+            profileRepository.delete(profile.get());
+         if(profile!=null){
              canDelete=true;
          }
 
@@ -101,7 +109,7 @@ public class ProfileController {
 
 
     @DeleteMapping(value = "/deleteProfile/{id}")
-    public Map<String, Object> deleteThisProfile(@PathVariable int id) {
+    public Map<String, Object> deleteThisProfile(@PathVariable String id) {
 
         Map<String, Object> responseMap = new HashMap<>();
 
